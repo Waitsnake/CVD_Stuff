@@ -43,6 +43,10 @@ layout(location = 0) out vec4 FragColor;
 
 layout(set = 0, binding = 2) uniform sampler2D Source;
 
+//----------------------------------
+// Machado 2009 - Protan
+//----------------------------------
+
 vec3 applyProtanomaly(vec3 c, int s)
 {
     vec3 o = c;
@@ -135,7 +139,7 @@ void main()
         color.rgb;
 
     //----------------------------------
-    // DC1
+    // DC1 with Machado 2009
     //----------------------------------
 
     int sev =
@@ -150,6 +154,10 @@ void main()
             rgb,
             sev);
 			
+    //----------------------------------
+    // K17 (Koehler 17)
+    //----------------------------------
+    
 	float sim_rg = simulated.r - simulated.g;
 	float sim_rb = simulated.r - simulated.b;
 	float sim_gb = simulated.g - simulated.b;
@@ -162,21 +170,7 @@ void main()
 	float error_rb = rgb_rb - sim_rb;
 	float error_gb = rgb_gb - sim_gb;
 	
-
     vec3 dc = rgb;
-
-    //----------------------------------
-    // K16
-    //----------------------------------	
-
-    float rg =
-        dc.r - dc.g;
-
-    float rb =
-        dc.r - dc.b;
-
-    float gb =
-        dc.g - dc.b;
 
     dc.r +=
         error_rg * global.rg_expansion +
