@@ -220,3 +220,7 @@ Particular interest exists in testing:
 * real-world usability in desktop environments, gaming, and mobile applications
 
 The long-term goal is to explore whether simulation-error-based correction can provide a useful alternative to traditional daltonization approaches.
+
+## License
+
+This project is released under the MIT License.
