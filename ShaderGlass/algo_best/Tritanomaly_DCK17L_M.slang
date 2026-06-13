@@ -36,10 +36,10 @@ layout(location = 0) out vec4 FragColor;
 layout(set = 0, binding = 2) uniform sampler2D Source;
 
 //----------------------------------
-// Machado 2009 - Protan
+// Machado 2009 - Tritan
 //----------------------------------
 
-vec3 applyProtanomaly(vec3 c, int s)
+vec3 applyTritanomaly(vec3 c, int s)
 {
     vec3 o = c;
 
@@ -49,63 +49,63 @@ vec3 applyProtanomaly(vec3 c, int s)
             break;
 
         case 1:
-            o.r =  0.856167*c.r + 0.182038*c.g - 0.038205*c.b;
-            o.g =  0.029342*c.r + 0.955115*c.g + 0.015544*c.b;
-            o.b = -0.002880*c.r - 0.001563*c.g + 1.004443*c.b;
+            o.r =  0.926670*c.r + 0.092514*c.g - 0.019184*c.b;
+            o.g =  0.021191*c.r + 0.964503*c.g + 0.014306*c.b;
+            o.b =  0.008437*c.r + 0.054813*c.g + 0.936750*c.b;
             break;
 
         case 2:
-            o.r =  0.734766*c.r + 0.334872*c.g - 0.069637*c.b;
-            o.g =  0.051840*c.r + 0.919198*c.g + 0.028963*c.b;
-            o.b = -0.004928*c.r - 0.004209*c.g + 1.009137*c.b;
+            o.r =  0.895720*c.r + 0.133330*c.g - 0.029050*c.b;
+            o.g =  0.029997*c.r + 0.945400*c.g + 0.024603*c.b;
+            o.b =  0.013027*c.r + 0.104707*c.g + 0.882266*c.b;
             break;
 
         case 3:
-            o.r =  0.630323*c.r + 0.465641*c.g - 0.095964*c.b;
-            o.g =  0.069181*c.r + 0.890046*c.g + 0.040773*c.b;
-            o.b = -0.006308*c.r - 0.007724*c.g + 1.014032*c.b;
+            o.r =  0.905871*c.r + 0.127791*c.g - 0.033662*c.b;
+            o.g =  0.026856*c.r + 0.941251*c.g + 0.031893*c.b;
+            o.b =  0.013410*c.r + 0.148296*c.g + 0.838294*c.b;
             break;
 
         case 4:
-            o.r =  0.539009*c.r + 0.579343*c.g - 0.118352*c.b;
-            o.g =  0.082546*c.r + 0.866121*c.g + 0.051332*c.b;
-            o.b = -0.007136*c.r - 0.011959*c.g + 1.019095*c.b;
+            o.r =  0.948035*c.r + 0.089490*c.g - 0.037526*c.b;
+            o.g =  0.014364*c.r + 0.946792*c.g + 0.038844*c.b;
+            o.b =  0.010853*c.r + 0.193991*c.g + 0.795156*c.b;
             break;
 
         case 5:
-            o.r =  0.458064*c.r + 0.679578*c.g - 0.137642*c.b;
-            o.g =  0.092785*c.r + 0.846313*c.g + 0.060902*c.b;
-            o.b = -0.007494*c.r - 0.016807*c.g + 1.024301*c.b;
+            o.r =  1.017277*c.r + 0.027029*c.g - 0.044306*c.b;
+            o.g = -0.006113*c.r + 0.958479*c.g + 0.047634*c.b;
+            o.b =  0.006379*c.r + 0.248708*c.g + 0.744913*c.b;
             break;
 
         case 6:
-            o.r =  0.385450*c.r + 0.769005*c.g - 0.154455*c.b;
-            o.g =  0.100526*c.r + 0.829802*c.g + 0.069673*c.b;
-            o.b = -0.007442*c.r - 0.022190*c.g + 1.029632*c.b;
+            o.r =  1.104996*c.r - 0.046633*c.g - 0.058363*c.b;
+            o.g = -0.032137*c.r + 0.971635*c.g + 0.060503*c.b;
+            o.b =  0.001336*c.r + 0.317922*c.g + 0.680742*c.b;
             break;
 
         case 7:
-            o.r =  0.319627*c.r + 0.849633*c.g - 0.169261*c.b;
-            o.g =  0.106241*c.r + 0.815969*c.g + 0.077790*c.b;
-            o.b = -0.007025*c.r - 0.028051*c.g + 1.035076*c.b;
+            o.r =  1.193214*c.r - 0.109812*c.g - 0.083402*c.b;
+            o.g = -0.058496*c.r + 0.979410*c.g + 0.079086*c.b;
+            o.b = -0.002346*c.r + 0.403492*c.g + 0.598854*c.b;
             break;
 
         case 8:
-            o.r =  0.259411*c.r + 0.923008*c.g - 0.182420*c.b;
-            o.g =  0.110296*c.r + 0.804340*c.g + 0.085364*c.b;
-            o.b = -0.006276*c.r - 0.034346*c.g + 1.040622*c.b;
+            o.r =  1.257728*c.r - 0.139648*c.g - 0.118081*c.b;
+            o.g = -0.078003*c.r + 0.975409*c.g + 0.102594*c.b;
+            o.b = -0.003316*c.r + 0.501214*c.g + 0.502102*c.b;
             break;
 
         case 9:
-            o.r =  0.203876*c.r + 0.990338*c.g - 0.194214*c.b;
-            o.g =  0.112975*c.r + 0.794542*c.g + 0.092483*c.b;
-            o.b = -0.005222*c.r - 0.041043*c.g + 1.046265*c.b;
+            o.r =  1.278864*c.r - 0.125333*c.g - 0.153531*c.b;
+            o.g = -0.084748*c.r + 0.957674*c.g + 0.127074*c.b;
+            o.b = -0.000989*c.r + 0.601151*c.g + 0.399838*c.b;
             break;
 
         default:
-            o.r =  0.152286*c.r + 1.052583*c.g - 0.204868*c.b;
-            o.g =  0.114503*c.r + 0.786281*c.g + 0.099216*c.b;
-            o.b = -0.003882*c.r - 0.048116*c.g + 1.051998*c.b;
+            o.r =  1.255528*c.r - 0.076749*c.g - 0.178779*c.b;
+            o.g = -0.078411*c.r + 0.930809*c.g + 0.147602*c.b;
+            o.b =  0.004733*c.r + 0.691367*c.g + 0.303900*c.b;
             break;
     }
 
@@ -142,26 +142,26 @@ void main()
                 10.0));
 
     vec3 simulated =
-        applyProtanomaly(
+        applyTritanomaly(
             rgb,
             sev);
-			
+
     //----------------------------------
     // K17 (Koehler 17)
     //----------------------------------
-    
-	float sim_rg = simulated.r - simulated.g;
-	float sim_rb = simulated.r - simulated.b;
-	float sim_gb = simulated.g - simulated.b;
-	
-	float rgb_rg = rgb.r - rgb.g;
-	float rgb_rb = rgb.r - rgb.b;
-	float rgb_gb = rgb.g - rgb.b;		
-			
-	float error_rg = rgb_rg - sim_rg;
-	float error_rb = rgb_rb - sim_rb;
-	float error_gb = rgb_gb - sim_gb;
-	
+
+    float sim_rg = simulated.r - simulated.g;
+    float sim_rb = simulated.r - simulated.b;
+    float sim_gb = simulated.g - simulated.b;
+
+    float rgb_rg = rgb.r - rgb.g;
+    float rgb_rb = rgb.r - rgb.b;
+    float rgb_gb = rgb.g - rgb.b;
+
+    float error_rg = rgb_rg - sim_rg;
+    float error_rb = rgb_rb - sim_rb;
+    float error_gb = rgb_gb - sim_gb;
+
     vec3 dc = rgb;
 
     // we only use fixed expansion of 1.0 atm

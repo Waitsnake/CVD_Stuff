@@ -1,6 +1,7 @@
 #version 450
 
 #pragma parameter severity      "DC1 Severity" 3.0 0.0 10.0 0.1
+#pragma parameter simulator "Brettel/Vienot" 0.0 0.0 1.0 1.0
 #pragma parameter preserve_luma "Preserve Luma" 1.00 0.00 1.00 0.01
 
 layout(std140, set = 0, binding = 0) uniform UBO
@@ -8,6 +9,7 @@ layout(std140, set = 0, binding = 0) uniform UBO
     mat4 MVP;
 
     float severity;
+    float simulator;
     float preserve_luma;
 
 } global;
@@ -64,20 +66,55 @@ vec3 lmsToRgb(vec3 lms)
 }
 
 //----------------------------------
-// Viénot 1999 - Protan
+// Viénot 1999 - Tritan
 //----------------------------------
 
-vec3 applyProtanopiaVienot(
+vec3 applyTritanopiaVienot(
     vec3 lms,
     float severity)
 {
     vec3 outLms = lms;
 
-    outLms.x =
-        (1.0 - severity) * lms.x +
+    outLms.z =
+        (1.0 - severity) * lms.z +
         severity *
-        (2.02344 * lms.y -
-         2.52580 * lms.z);
+        (-0.01224 * lms.x +
+          0.07203 * lms.y);
+
+    return outLms;
+}
+
+//----------------------------------
+// Brettel 1997 - Tritan
+//----------------------------------
+
+vec3 applyTritanopiaBrettel(
+    vec3 lms,
+    float severity)
+{
+    vec3 outLms = lms;
+
+    if ((lms.x * 0.34478 -
+         lms.y * 0.65518) >= 0.0)
+    {
+        // Plane 1
+
+        outLms.z =
+            (1.0 - severity) * lms.z +
+            severity *
+            (-0.00257 * lms.x +
+              0.05366 * lms.y);
+    }
+    else
+    {
+        // Plane 2
+
+        outLms.z =
+            (1.0 - severity) * lms.z +
+            severity *
+            (-0.06011 * lms.x +
+              0.16299 * lms.y);
+    }
 
     return outLms;
 }
@@ -101,7 +138,7 @@ void main()
         color.rgb;
 
     //----------------------------------
-    // DC1 with Viénot 1999
+    // DC1 with Viénot 1999 or Brettel 1997
     //----------------------------------
 
     float sev =
@@ -113,10 +150,20 @@ void main()
     vec3 lms =
         rgbToLms(rgb);
 
-    vec3 simulatedLms =
-        applyProtanopiaVienot(
-            lms,
-            sev);
+    if (global.simulator < 0.5)
+    {
+        simulatedLms =
+            applyTritanopiaBrettel(
+                lms,
+                sev);
+    }
+    else
+    {
+        simulatedLms =
+            applyTritanopiaVienot(
+                lms,
+                sev);
+    }
 
     vec3 simulated =
         clamp(

@@ -64,20 +64,20 @@ vec3 lmsToRgb(vec3 lms)
 }
 
 //----------------------------------
-// Viénot 1999 - Protan
+// Viénot 1999 - Deutan
 //----------------------------------
 
-vec3 applyProtanopiaVienot(
+vec3 applyDeuteranopiaVienot(
     vec3 lms,
     float severity)
 {
     vec3 outLms = lms;
 
-    outLms.x =
-        (1.0 - severity) * lms.x +
+    outLms.y =
+        (1.0 - severity) * lms.y +
         severity *
-        (2.02344 * lms.y -
-         2.52580 * lms.z);
+        (0.49421 * lms.x +
+         1.24827 * lms.z);
 
     return outLms;
 }
@@ -114,7 +114,7 @@ void main()
         rgbToLms(rgb);
 
     vec3 simulatedLms =
-        applyProtanopiaVienot(
+        applyDeuteranopiaVienot(
             lms,
             sev);
 
