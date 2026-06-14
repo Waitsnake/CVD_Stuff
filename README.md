@@ -1,10 +1,12 @@
-# DCK17L – Difference-based Color Vision Deficiency Correction
+# DCK18L – Difference-based Color Vision Deficiency Correction
 
 ## Introduction
 
-DCK17L (**D**alton **C**orrection **K**oehler version **17** with **L**uminance preservation) is an experimental color vision deficiency (CVD) correction framework.
+DCK18L (**D**alton **C**orrection **K**oehler version **18** with **L**uminance preservation) is an experimental color vision deficiency (CVD) correction framework.
 
-Unlike traditional daltonization methods, DCK17L does not directly modify colors using predefined correction matrices. Instead, it analyzes the information loss predicted by a CVD simulation model and attempts to restore this lost information by enhancing color-channel differences.
+DCK18L is the successor of DCK17L and extends the original method with an additional **Soft Compression (SC)** stage designed to reduce saturation clipping while preserving local image detail.
+
+Unlike traditional daltonization methods, DCK18L does not directly modify colors using predefined correction matrices. Instead, it analyzes the information loss predicted by a CVD simulation model and attempts to restore this lost information by enhancing color-channel differences.
 
 The method is intentionally independent from any specific CVD simulation model.
 
@@ -25,7 +27,7 @@ Let
 * **rgb** be the original color
 * **simulated** be the color predicted by a CVD simulation
 
-DCK17L first computes the channel differences of both colors:
+DCK18L first computes the channel differences of both colors:
 
 ```text
 RG = R - G
@@ -45,35 +47,104 @@ errorGB = GBoriginal - GBsimulated
 
 These error values represent color contrast information that the simulation predicts would be lost for a viewer with the selected color vision deficiency.
 
-In other words, DCK17L does not attempt to "invent" new colors. It attempts to restore color contrast that the simulation predicts has become less distinguishable.
+In other words, DCK18L does not attempt to invent new colors. It attempts to restore color contrast that the simulation predicts has become less distinguishable.
 
 ---
 
-## DCK17 Correction
+## DCK18 Correction
 
 The correction is applied directly to the RGB channels:
 
 ```text
-R' = R + errorRG + errorRB
-G' = G - errorRG + errorGB
-B' = B - errorRB - errorGB
+R' = R + errorRG * dckRG + errorRB * dckRB
+
+G' = G - errorRG * dckRG + errorGB * dckGB
+
+B' = B - errorRB * dckRB - errorGB * dckGB
 ```
 
-The resulting color is then clamped into the valid RGB range.
+Typical values are:
 
-Unlike earlier DCK16 variants, DCK17L uses the simulation error directly and therefore typically works well with fixed coefficients of **1.0**.
+```text
+dckRG = 1.0
+dckRB = 1.0
+dckGB = 1.0
+```
 
-This removes much of the manual tuning that was required in earlier RG/RB/GB expansion approaches.
+The correction is intentionally simple and directly follows the color differences lost according to the selected simulation model.
+
+The resulting color is not immediately hard-clamped.
+
+Instead, DCK18L applies Soft Compression first.
 
 ---
 
-## Luminance Preservation
+## Soft Compression (SC)
 
-A practical problem observed during testing was brightness overshoot.
+During practical testing, a major limitation of DCK17L became apparent.
 
-Increasing color separation often increases overall luminance, resulting in unnatural and oversaturated images.
+Strong corrections often caused highly saturated colors to collapse into large clipped regions.
 
-To compensate for this effect, DCK17L performs a luminance preservation step.
+For example:
+
+```text
+Original
+
+A = (255, 0, 0)
+B = (210, 0, 0)
+C = (190, 0, 0)
+```
+
+contain visible surface differences.
+
+After aggressive correction and hard clamping:
+
+```text
+A = (255, 0, 0)
+B = (255, 0, 0)
+C = (255, 0, 0)
+```
+
+all detail is lost.
+
+This effect was especially visible in:
+
+* red clothing
+* red vehicles
+* red logos
+* shaded red surfaces
+
+DCK18L therefore introduces Soft Compression.
+
+Instead of clipping channels independently, all RGB channels are scaled proportionally whenever one channel exceeds the valid range.
+
+Example:
+
+```text
+Before:
+
+(1.20, 1.10, 0.90)
+
+Hard Clamp:
+
+(1.00, 1.00, 0.90)
+
+Soft Compression:
+
+(1.00, 0.92, 0.75)
+```
+
+This preserves relative color relationships and helps retain local contrast and image structure.
+
+In practice, Soft Compression significantly improves visual quality for real-world images.
+
+---
+
+## Luminance Preservation (LP)
+
+Increasing color separation often increases overall luminance.
+
+Without compensation, corrected images can appear unnaturally bright and oversaturated.
 
 Luminance is calculated as:
 
@@ -98,15 +169,15 @@ RGBfinal =
     (deltaY, deltaY, deltaY)
 ```
 
-This simple step significantly improves visual stability and reduces brightness artifacts introduced by the correction process.
+Luminance Preservation greatly improves image stability and reduces brightness artifacts.
 
-In practice, luminance preservation turned out to be an essential component of DCK17L. Without it, strong corrections frequently produced images that appeared unnaturally bright or visually unstable.
+Although disabling LP may improve some color-vision test scores, LP generally produces more natural-looking results for photographs, videos, desktop environments, and everyday use.
 
 ---
 
-## DCK17L Is a Framework
+## DCK18L Is a Framework
 
-DCK17L itself is **not** a color vision deficiency simulation model.
+DCK18L itself is **not** a color vision deficiency simulation model.
 
 Instead, it operates on the output of a simulation model.
 
@@ -119,18 +190,20 @@ CVD Simulation
 ↓
 Information Loss Estimation
 ↓
-DCK17 Correction
+DCK18 Correction
+↓
+Soft Compression
 ↓
 Luminance Preservation
 ↓
 Final Image
 ```
 
-Therefore, DCK17L can only be as accurate as the simulation model used to generate the information loss.
+Therefore, DCK18L can only be as accurate as the simulation model used to generate the information loss.
 
-This separation is intentional.
+The correction algorithm and the simulation model are independent components.
 
-The correction algorithm and the simulation model are independent components. Improvements in future simulation models can therefore be used by DCK17L without changing the correction method itself.
+Future simulation models can therefore be used by DCK18L without modifying the correction algorithm itself.
 
 ---
 
@@ -138,25 +211,25 @@ The correction algorithm and the simulation model are independent components. Im
 
 ### Machado et al. (2009)
 
-Machado provides continuous severity levels and generally produces stronger color shifts.
+Machado provides physiologically motivated severity levels and generally produces stronger color shifts.
 
-In practice this often results in stronger DCK17L corrections and increased color separation.
+In practice this often results in stronger DCK18L corrections and increased color separation.
 
-Some users may prefer this behavior in applications where maximum distinguishability is desired, such as syntax highlighting, user interfaces, or accessibility-focused workflows.
+Some users may prefer this behavior in accessibility-focused workflows or situations where maximum distinguishability is desired.
 
 ### Viénot et al. (1999)
 
 Viénot generally produces more conservative simulations.
 
-For protan and deutan deficiencies it often preserves the appearance of unaffected colors more closely while concentrating changes around confusion regions.
-
-This usually results in weaker but potentially more realistic DCK17L corrections.
+For protan and deutan deficiencies it often preserves unaffected colors more closely and tends to produce weaker but visually natural corrections.
 
 ### Brettel et al. (1997)
 
-For tritan deficiencies, Brettel's model is generally considered more accurate than the simplified Viénot approach and is therefore preferred.
+Brettel remains one of the most influential and experimentally validated color vision deficiency simulation models.
 
-Current DCK17L tritan implementations use Brettel-based simulation by default.
+For tritan deficiencies it is generally considered more accurate than simplified approaches and is therefore preferred.
+
+Current DCK18L tritan implementations use Brettel-based simulation by default.
 
 ---
 
@@ -178,13 +251,13 @@ Determining a realistic severity for an individual user is therefore essential.
 
 A correction can only be as good as the simulation model and severity setting on which it is based.
 
-For many users, finding the correct severity may have a larger impact on the final result than switching between different correction algorithms.
+In many practical situations, severity calibration has a larger impact on the final result than switching between different correction algorithms.
 
 ---
 
 ## Limitations
 
-DCK17L does not claim to reproduce the exact perception of a specific observer.
+DCK18L does not claim to reproduce the exact perception of a specific observer.
 
 The algorithm assumes that the selected simulation model and severity level provide a reasonable approximation of the user's color vision deficiency.
 
@@ -200,13 +273,13 @@ Simulation Accuracy
 Severity Accuracy
 ```
 
-DCK17L should therefore be viewed as a correction framework built on top of existing CVD simulation models rather than a standalone model of color perception.
+DCK18L should therefore be viewed as a correction framework built on top of existing CVD simulation models rather than a standalone model of color perception.
 
 ---
 
 ## Status
 
-DCK17L is currently an experimental method.
+DCK18L is currently an experimental method.
 
 The implementation is released for public testing and evaluation.
 
@@ -217,9 +290,12 @@ Particular interest exists in testing:
 * different simulation models
 * severity calibration methods
 * protan, deutan, and tritan variants
+* DCK coefficients
 * real-world usability in desktop environments, gaming, and mobile applications
 
 The long-term goal is to explore whether simulation-error-based correction can provide a useful alternative to traditional daltonization approaches.
+
+---
 
 ## License
 

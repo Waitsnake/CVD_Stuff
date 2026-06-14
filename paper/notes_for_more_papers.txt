@@ -1,0 +1,104 @@
+Boynton 1986
+Guth 1980
+De Valois 1993
+
+
+Asano
+Yaguchi
+Stockman
+
+13. H. Yaguchi, J. Luo, M. Kato, and Y. Mizokami, "Computerized simulation of color appearance for anomalous trichromats using the multispectral image," J. Opt. Soc. Am. A 35(4), B278 (2018).
+
+6. L. T. Sharpe, A. Stockman, H. Jägle, and J. Nathans, "Opsin genes, cone photopigments, color vision, and
+color blindness," color vision (1999).
+
+12. L. T. Sharpe, A. Stockman, H. Jägle, H. Knau, G. Klausen, A. Reitner, and J. Nathans, "Red, Green, and Red-Green Hybrid Pigments in the Human Retina: Correlations between Deduced Protein Sequences and Psychophysically Measured Spectral Sensitivities," J. Neurosci. 18(23), 10053–10069 (1998).
+
+17. A. Stockman and A. T. Rider, "Formulae for generating standard and individual human cone spectral sensitivities," Color Research & Application 48(6), 818–840 (2023).
+
+22. A. Stockman, L. T. Sharpe, and C. Fach, "The spectral sensitivity of the human short-wavelength sensitive
+cones derived from thresholds and color matches," Vision Research 39(17), 2901–2927 (1999).
+
+23. A. Stockman and L. T. Sharpe, "The spectral sensitivities of the middle- and long-wavelength-sensitive cones
+derived from measurements in observers of known genotype," Vision Research 40(13), 1711–1737 (2000).
+
+
+2. Das Paper enthält eine kleine Schatzkiste
+
+Die eigentlichen Perlen sind fast eher die Referenzen.
+
+Insbesondere:
+
+Guth et al. 1980
+
+Vector model for normal and dichromatic vision
+
+Referenz 22.
+
+Das klingt hochinteressant.
+
+1980 war noch vor Brettel.
+
+Damals hat man noch versucht, die gesamte Dichromasie direkt aus Opponenzkanälen herzuleiten.
+
+Das könnte historisch spannend sein.
+
+ATD95 (Guth 1995)
+
+Referenzen 19 und 20.
+
+Capilla verwendet ATD95 als eines seiner Hauptmodelle.
+
+ATD95 ist eigentlich ein vollständiges Wahrnehmungsmodell:
+
+Adaptation
+Opponenzkanäle
+Helligkeit
+Sättigung
+
+Wenn jemand versuchen wollte, DCK nicht auf RGB-Differenzen sondern auf Wahrnehmungskanälen aufzubauen, wäre ATD95 vermutlich einer der Kandidaten.
+
+De Valois 1993
+
+Referenz 24.
+
+Mehrstufiges Opponenzmodell.
+
+Wird heute noch oft zitiert.
+
+
+
+
+
+
+
+CVD_Stuff/
+
+  Simulation/
+
+    Brettel_1997.pdf
+    Vienot_1999.pdf
+    Machado_2009.pdf
+    Fukuda_2015_APL.pdf
+    Sun_2025.pdf
+
+  Perception/
+
+    Guth_1980_VectorModel.pdf
+    ATD95_Guth_1995.pdf
+    DeValois_1993.pdf
+    Capilla_2004.pdf
+
+  Psychophysics/
+
+    Judd_1948.pdf
+    Sloan_1948.pdf
+    MacLeod_1976.pdf
+    Alpern_1983.pdf
+
+  Daltonization/
+
+    Kuhn_2008.pdf
+    Anagnostopoulos_2007.pdf
+    DCK17L.md
+    DCK18L.md
