@@ -178,9 +178,9 @@ void main()
     float rbGain = 1.0;
     float gbGain = 1.0;
 
-    float rgDelta = abs(error_rg * dckRG);
-    float rbDelta = abs(error_rb * dckRB);
-    float gbDelta = abs(error_gb * dckGB);
+    float rgDelta = abs(error_rg * global.dckRG);
+    float rbDelta = abs(error_rb * global.dckRB);
+    float gbDelta = abs(error_gb * global.dckGB);
 
     //----------------------------------
     // RG
@@ -271,16 +271,16 @@ void main()
     //----------------------------------
 
     dc.r +=
-        error_rg * dckRG * rgGain +
-        error_rb * dckRB * rbGain;
+        error_rg * global.dckRG * rgGain +
+        error_rb * global.dckRB * rbGain;
 
     dc.g +=
-       -error_rg * dckRG * rgGain +
-        error_gb * dckGB * gbGain;
+       -error_rg * global.dckRG * rgGain +
+        error_gb * global.dckGB * gbGain;
 
     dc.b +=
-       -error_rb * dckRB * rbGain -
-        error_gb * dckGB * gbGain;
+       -error_rb * global.dckRB * rbGain -
+        error_gb * global.dckGB * gbGain;
 
     dc =
         clamp(
