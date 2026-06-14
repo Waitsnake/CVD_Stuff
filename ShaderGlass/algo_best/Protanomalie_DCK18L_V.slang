@@ -1,8 +1,8 @@
 #version 450
 
 #pragma parameter severity      "DC1 Severity" 4.0 0.0 10.0 0.1
-#pragma parameter preserve_luma "Preserve Luma" 1.00 0.00 5.00 0.01
-#pragma parameter scStrength "Soft Compression Strength" 1.0 0.0 20.0 0.1
+#pragma parameter preserve_luma "Preserve Luma" 1.00 0.00 1.00 0.01
+#pragma parameter scStrength "Soft Compression Strength" 1.0 0.0 5.0 0.1
 #pragma parameter dckRG  "dckRG (experimental individual calibration)" 1.0 -2.0 2.0 0.1
 #pragma parameter dckRB  "dckRB (experimental individual calibration)" 1.0 -2.0 2.0 0.1
 #pragma parameter dckGB  "dckGB (experimental individual calibration)" 1.0 -2.0 2.0 0.1
