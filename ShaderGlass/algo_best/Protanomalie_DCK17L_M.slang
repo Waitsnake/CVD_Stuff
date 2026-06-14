@@ -170,16 +170,16 @@ void main()
     float gb_expansion = 1.0;
 
     dc.r +=
-        error_rg * global.rg_expansion +
-        error_rb * global.rb_expansion;
+        error_rg * rg_expansion +
+        error_rb * rb_expansion;
 
     dc.g +=
-       -error_rg * global.rg_expansion +
-        error_gb * global.gb_expansion;
+       -error_rg * rg_expansion +
+        error_gb * gb_expansion;
 
     dc.b +=
-       -error_rb * global.rb_expansion -
-        error_gb * global.gb_expansion;
+       -error_rb * rb_expansion -
+        error_gb * gb_expansion;
 
     dc =
         clamp(
