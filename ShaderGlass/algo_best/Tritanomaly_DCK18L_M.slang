@@ -2,6 +2,9 @@
 
 #pragma parameter severity      "DC1 Severity" 3.0 0.0 10.0 0.1
 #pragma parameter preserve_luma "Preserve Luma" 1.00 0.00 1.00 0.01
+#pragma parameter dckRG  "dckRG (experimental individual calibration)" 1.0 -2.0 2.0 0.1
+#pragma parameter dckRB  "dckRB (experimental individual calibration)" 1.0 -2.0 2.0 0.1
+#pragma parameter dckGB  "dckGB (experimental individual calibration)" 1.0 -2.0 2.0 0.1
 
 layout(std140, set = 0, binding = 0) uniform UBO
 {
@@ -9,6 +12,9 @@ layout(std140, set = 0, binding = 0) uniform UBO
 
     float severity;
     float preserve_luma;
+    float dckRG;
+    float dckRB;
+    float dckGB;
 
 } global;
 
@@ -163,14 +169,6 @@ void main()
     float error_gb = rgb_gb - sim_gb;
 
     vec3 dc = rgb;
-
-    //----------------------------------
-    // DCK factors
-    //----------------------------------
-
-    float dckRG = 1.0;
-    float dckRB = 1.0;
-    float dckGB = 1.0;
 
     //----------------------------------
     // Soft Compression
