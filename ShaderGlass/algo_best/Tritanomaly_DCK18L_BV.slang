@@ -3,6 +3,7 @@
 #pragma parameter severity      "DC1 Severity" 3.0 0.0 10.0 0.1
 #pragma parameter simulator "Brettel/Vienot" 0.0 0.0 1.0 1.0
 #pragma parameter preserve_luma "Preserve Luma" 1.00 0.00 1.00 0.01
+#pragma parameter scStrength "Soft Compression Strength" 1.0 0.0 5.0 0.1
 #pragma parameter dckRG  "dckRG (experimental individual calibration)" 1.0 -2.0 2.0 0.1
 #pragma parameter dckRB  "dckRB (experimental individual calibration)" 1.0 -2.0 2.0 0.1
 #pragma parameter dckGB  "dckGB (experimental individual calibration)" 1.0 -2.0 2.0 0.1
@@ -14,6 +15,7 @@ layout(std140, set = 0, binding = 0) uniform UBO
     float severity;
     float simulator;
     float preserve_luma;
+	float scStrength;
     float dckRG;
     float dckRB;
     float dckGB;
@@ -227,20 +229,38 @@ void main()
     // 5) Soft Compression
     //----------------------------------
 
-    float gainR =
+    float distR =
         (deltaR >= 0.0)
-        ? sqrt(max(0.0, 1.0 - rgb.r))
-        : sqrt(max(0.0, rgb.r));
+        ? max(0.0, 1.0 - rgb.r)
+        : max(0.0, rgb.r);
 
-    float gainG =
+    float distG =
         (deltaG >= 0.0)
-        ? sqrt(max(0.0, 1.0 - rgb.g))
-        : sqrt(max(0.0, rgb.g));
-
-    float gainB =
+        ? max(0.0, 1.0 - rgb.g)
+        : max(0.0, rgb.g);
+    
+    float distB =
         (deltaB >= 0.0)
-        ? sqrt(max(0.0, 1.0 - rgb.b))
-        : sqrt(max(0.0, rgb.b));
+        ? max(0.0, 1.0 - rgb.b)
+        : max(0.0, rgb.b);
+    
+    float exponent =
+        0.5 * global.scStrength;
+    
+    float gainR =
+        (global.scStrength <= 0.0)
+        ? 1.0
+        : pow(distR, exponent);
+    
+    float gainG =
+        (global.scStrength <= 0.0)
+        ? 1.0
+        : pow(distG, exponent);
+    
+    float gainB =
+        (global.scStrength <= 0.0)
+        ? 1.0
+        : pow(distB, exponent);
 
     //----------------------------------
     // 6) Apply correction
