@@ -134,131 +134,80 @@ void main()
     // DCK18L
     //----------------------------------
 
-    float sim_rg = simulated.r - simulated.g;
-    float sim_rb = simulated.r - simulated.b;
-    float sim_gb = simulated.g - simulated.b;
+    //----------------------------------
+    // 1) Original channel differences
+    //----------------------------------
 
     float rgb_rg = rgb.r - rgb.g;
     float rgb_rb = rgb.r - rgb.b;
     float rgb_gb = rgb.g - rgb.b;
 
+    //----------------------------------
+    // 2) Simulated channel differences
+    //----------------------------------
+
+    float sim_rg = simulated.r - simulated.g;
+    float sim_rb = simulated.r - simulated.b;
+    float sim_gb = simulated.g - simulated.b;
+
+    //----------------------------------
+    // 3) Information loss
+    //----------------------------------
+
     float error_rg = rgb_rg - sim_rg;
     float error_rb = rgb_rb - sim_rb;
     float error_gb = rgb_gb - sim_gb;
 
+
+    //----------------------------------
+    // 4) DCK17 correction
+    //----------------------------------
+
+    float deltaR =
+        error_rg * global.dckRG +
+        error_rb * global.dckRB;
+
+    float deltaG =
+       -error_rg * global.dckRG +
+        error_gb * global.dckGB;
+
+    float deltaB =
+       -error_rb * global.dckRB -
+        error_gb * global.dckGB;
+
+    //----------------------------------
+    // 5) Soft Compression
+    //----------------------------------
+
+    float gainR =
+        (deltaR >= 0.0)
+        ? sqrt(max(0.0, 1.0 - rgb.r))
+        : sqrt(max(0.0, rgb.r));
+
+    float gainG =
+        (deltaG >= 0.0)
+        ? sqrt(max(0.0, 1.0 - rgb.g))
+        : sqrt(max(0.0, rgb.g));
+
+    float gainB =
+        (deltaB >= 0.0)
+        ? sqrt(max(0.0, 1.0 - rgb.b))
+        : sqrt(max(0.0, rgb.b));
+
+    //----------------------------------
+    // 6) Apply correction
+    //----------------------------------
+
     vec3 dc = rgb;
 
-    //----------------------------------
-    // Soft Compression
-    //----------------------------------
-
-    float rgGain = 1.0;
-    float rbGain = 1.0;
-    float gbGain = 1.0;
-
-    float rgDelta = abs(error_rg * global.dckRG);
-    float rbDelta = abs(error_rb * global.dckRB);
-    float gbDelta = abs(error_gb * global.dckGB);
-
-    //----------------------------------
-    // RG
-    //----------------------------------
-
-    if (rgDelta > 1e-6)
-    {
-        if (error_rg > 0.0)
-        {
-            rgGain =
-                min(
-                    (1.0 - rgb.r) / rgDelta,
-                    rgb.g / rgDelta);
-        }
-        else
-        {
-            rgGain =
-                min(
-                    rgb.r / rgDelta,
-                    (1.0 - rgb.g) / rgDelta);
-        }
-
-        rgGain =
-            clamp(
-                rgGain,
-                0.0,
-                1.0);
-    }
-
-    //----------------------------------
-    // RB
-    //----------------------------------
-
-    if (rbDelta > 1e-6)
-    {
-        if (error_rb > 0.0)
-        {
-            rbGain =
-                min(
-                    (1.0 - rgb.r) / rbDelta,
-                    rgb.b / rbDelta);
-        }
-        else
-        {
-            rbGain =
-                min(
-                    rgb.r / rbDelta,
-                    (1.0 - rgb.b) / rbDelta);
-        }
-
-        rbGain =
-            clamp(
-                rbGain,
-                0.0,
-                1.0);
-    }
-
-    //----------------------------------
-    // GB
-    //----------------------------------
-
-    if (gbDelta > 1e-6)
-    {
-        if (error_gb > 0.0)
-        {
-            gbGain =
-                min(
-                    (1.0 - rgb.g) / gbDelta,
-                    rgb.b / gbDelta);
-        }
-        else
-        {
-            gbGain =
-                min(
-                    rgb.g / gbDelta,
-                    (1.0 - rgb.b) / gbDelta);
-        }
-
-        gbGain =
-            clamp(
-                gbGain,
-                0.0,
-                1.0);
-    }
-
-    //----------------------------------
-    // Apply DCK18 correction
-    //----------------------------------
-
     dc.r +=
-        error_rg * global.dckRG * rgGain +
-        error_rb * global.dckRB * rbGain;
+        deltaR * gainR;
 
     dc.g +=
-       -error_rg * global.dckRG * rgGain +
-        error_gb * global.dckGB * gbGain;
+        deltaG * gainG;
 
     dc.b +=
-       -error_rb * global.dckRB * rbGain -
-        error_gb * global.dckGB * gbGain;
+        deltaB * gainB;
 
     dc =
         clamp(
@@ -267,7 +216,7 @@ void main()
             1.0);
 
     //----------------------------------
-    // L (luminance preserve)
+    // 7) Luminance preserve
     //----------------------------------
 
     float yOriginal =
