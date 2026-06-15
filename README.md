@@ -83,7 +83,7 @@ Instead, DCK18L applies Soft Compression first.
 
 During practical testing, a major limitation of DCK17L became apparent.
 
-Strong corrections often caused highly saturated colors to collapse into large clipped regions.
+Strong corrections often caused highly saturated colors to collapse into clipped regions.
 
 For example:
 
@@ -97,7 +97,7 @@ C = (190, 0, 0)
 
 contain visible surface differences.
 
-After aggressive correction and hard clamping:
+A naive correction may push all three colors towards the same channel limit:
 
 ```text
 A = (255, 0, 0)
@@ -105,38 +105,49 @@ B = (255, 0, 0)
 C = (255, 0, 0)
 ```
 
-all detail is lost.
+destroying local contrast and surface detail.
 
-This effect was especially visible in:
+Earlier DCK18L versions used a global compression stage.
 
-* red clothing
-* red vehicles
-* red logos
-* shaded red surfaces
+Current versions instead use a distance-dependent Soft Compression model.
 
-DCK18L therefore introduces Soft Compression.
+The correction applied to each channel is gradually reduced as the channel approaches its valid range limit.
 
-Instead of clipping channels independently, all RGB channels are scaled proportionally whenever one channel exceeds the valid range.
-
-Example:
+Conceptually:
 
 ```text
-Before:
+large distance to limit
+→ almost full correction
 
-(1.20, 1.10, 0.90)
-
-Hard Clamp:
-
-(1.00, 1.00, 0.90)
-
-Soft Compression:
-
-(1.00, 0.92, 0.75)
+small distance to limit
+→ reduced correction
 ```
 
-This preserves relative color relationships and helps retain local contrast and image structure.
+This allows DCK18L to preserve color separation in most of the image while reducing the risk of local saturation collapse.
 
-In practice, Soft Compression significantly improves visual quality for real-world images.
+The amount of compression is controlled by:
+
+```text
+scStrength
+```
+
+Typical values:
+
+```text
+0.0
+    disabled
+
+1.0
+    default
+
+>1.0
+    stronger protection against clipping
+    but weaker color separation
+```
+
+SC is therefore intended primarily as a safety mechanism.
+
+Excessively large values may reduce the very color differences that DCK18L attempts to recover.
 
 ---
 
@@ -257,6 +268,8 @@ In many practical situations, severity calibration has a larger impact on the fi
 
 ## Limitations
 
+### Dependence on Simulation Accuracy
+
 DCK18L does not claim to reproduce the exact perception of a specific observer.
 
 The algorithm assumes that the selected simulation model and severity level provide a reasonable approximation of the user's color vision deficiency.
@@ -274,6 +287,28 @@ Severity Accuracy
 ```
 
 DCK18L should therefore be viewed as a correction framework built on top of existing CVD simulation models rather than a standalone model of color perception.
+
+### Potential Severity Dependence
+
+DCK18L differs from many traditional daltonization approaches in an important way.
+
+Rather than remapping colors into alternative perceptual channels, DCK18L attempts to enhance color-difference information that is predicted to be reduced by a color vision deficiency simulation.
+
+The method therefore operates on the assumption that at least some of the original color information remains available to the observer.
+
+For mild and moderate forms of color vision deficiency, this assumption may be valid. In such cases, color differences may be weakened rather than completely lost, allowing DCK18L to increase the visibility of existing color contrast without substantially altering the overall appearance of the image.
+
+However, the behavior at higher severity levels remains unclear.
+
+If a large portion of the original color information collapses into similar perceptual categories, the amount of recoverable information may become increasingly limited. In such situations, approaches that intentionally remap colors into alternative perceptual channels may prove more effective than approaches based primarily on contrast restoration.
+
+A useful way to view DCK18L is therefore not as a color replacement algorithm, but as a color contrast reconstruction algorithm.
+
+Its effectiveness may depend on how much residual color discrimination remains available to the observer.
+
+This hypothesis is currently based on practical observations and simulation experiments. It has not yet been validated through controlled testing with users across a broad range of protan, deutan, and tritan severity levels.
+
+Additional user studies will be required to determine how well DCK18L scales from mild deficiencies to severe forms of color vision loss.
 
 ---
 
