@@ -30,25 +30,25 @@ uniform float preserve_luma <
 
 uniform float scStrength <
     ui_type = "slider";
-    ui_label = "Soft Compression Strength";
+    ui_label = "Soft Compression";
     ui_min = 0.0; ui_max = 5.0; ui_step = 0.1;
 > = 1.0;
 
 uniform float dckRG <
     ui_type = "slider";
-    ui_label = "dckRG (experimental individual calibration)";
+    ui_label = "RG diff calibration";
     ui_min = -2.0; ui_max = 2.0; ui_step = 0.1;
 > = 1.0;
 
 uniform float dckRB <
     ui_type = "slider";
-    ui_label = "dckRB (experimental individual calibration)";
+    ui_label = "RB diff calibration";
     ui_min = -2.0; ui_max = 2.0; ui_step = 0.1;
 > = 1.0;
 
 uniform float dckGB <
     ui_type = "slider";
-    ui_label = "dckGB (experimental individual calibration)";
+    ui_label = "GB diff calibration";
     ui_min = -2.0; ui_max = 2.0; ui_step = 0.1;
 > = 1.0;
 
