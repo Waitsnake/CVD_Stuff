@@ -186,13 +186,13 @@ float luminance(float3 c)
 // Pixel Shader
 //----------------------------------
 
-void PS_ColorCorrection(float4 vpos : SV_Position, float2 texcoord : TEXCOORD0, out float4 fragColor : SV_Target)
+void PS_DCK18L(float4 vpos : SV_Position, float2 texcoord : TEXCOORD0, out float4 fragColor : SV_Target)
 {
     float4 color = tex2D(ReShade::BackBuffer, texcoord);
     float3 rgb = color.rgb;
 
     //----------------------------------
-    // DC1 with Viénot 1999
+    // CVD with Viénot 1999 / Brettel 1997
     //----------------------------------
 
     float sev = saturate(severity / 10.0);
@@ -323,11 +323,11 @@ void PS_ColorCorrection(float4 vpos : SV_Position, float2 texcoord : TEXCOORD0, 
 // Technik-Definition (Pipeline)
 //----------------------------------
 
-technique ColorCorrection
+technique DCK18L_ColorCorrection
 {
     pass
     {
         VertexShader = PostProcessVS;
-        PixelShader = PS_ColorCorrection;
+        PixelShader = PS_DCK18L;
     }
 }
