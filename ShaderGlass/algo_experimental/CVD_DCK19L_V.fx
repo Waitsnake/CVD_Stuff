@@ -355,6 +355,6 @@ technique DCK19L_ColorCorrection
     pass
     {
         VertexShader = PostProcessVS;
-        PixelShader = PS_DCK18L;
+        PixelShader = PS_DCK19L;
     }
 }
