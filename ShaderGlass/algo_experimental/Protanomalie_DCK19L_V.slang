@@ -241,7 +241,7 @@ void main()
 
     float yOriginal =
         luminance(
-            srgba);
+            rgb);
 
     float yCorrected =
         luminance(
@@ -257,10 +257,10 @@ void main()
 
     float visibility =
         length(
-            float3(
-                rgError,
-                rbError,
-                gbError));
+            vec3(
+                error_rg,
+                error_rb,
+                error_gb));
 
     //----------------------------------
     // Normalize visibility
@@ -274,7 +274,7 @@ void main()
     //----------------------------------
 
     float adaptiveLP =
-        dckPreserveLuma *
+        global.preserve_luma *
         (1.0 +
          visibility);
 
@@ -283,7 +283,7 @@ void main()
     //----------------------------------
 
     dc.rgb -=
-        float3(
+        vec3(
             deltaY,
             deltaY,
             deltaY) *
