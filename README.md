@@ -1,10 +1,13 @@
-# DCK18L – Difference-based Color Vision Deficiency Correction
+# DCK18L / DCK19L – Difference-based Color Vision Deficiency Correction
 
 ## Introduction
 
-DCK18L (**D**alton **C**orrection **K**oehler version **18** with **L**uminance preservation) is an experimental color vision deficiency (CVD) correction framework.
+DCK18L (**D**alton **C**orrection **K**oehler version **18** with **L**uminance Preservation) is an experimental color vision deficiency (CVD) correction framework.
 
-DCK18L is the successor of DCK17L and extends the original method with an additional **Soft Compression (SC)** stage designed to reduce saturation clipping while preserving local image detail.
+DCK18L is the successor of DCK17L and extends the original method with two stabilization stages:
+
+* **Soft Compression (SC)**
+* **Luminance Preservation (LP)**
 
 Unlike traditional daltonization methods, DCK18L does not directly modify colors using predefined correction matrices. Instead, it analyzes the information loss predicted by a CVD simulation model and attempts to restore this lost information by enhancing color-channel differences.
 
@@ -27,7 +30,7 @@ Let
 * **rgb** be the original color
 * **simulated** be the color predicted by a CVD simulation
 
-DCK18L first computes the channel differences of both colors:
+DCK first computes the channel differences of both colors:
 
 ```text
 RG = R - G
@@ -47,11 +50,11 @@ errorGB = GBoriginal - GBsimulated
 
 These error values represent color contrast information that the simulation predicts would be lost for a viewer with the selected color vision deficiency.
 
-In other words, DCK18L does not attempt to invent new colors. It attempts to restore color contrast that the simulation predicts has become less distinguishable.
+In other words, DCK does not attempt to invent new colors. It attempts to restore color contrast that the simulation predicts has become less distinguishable.
 
 ---
 
-## DCK18 Correction
+## DCK Correction
 
 The correction is applied directly to the RGB channels:
 
@@ -107,9 +110,7 @@ C = (255, 0, 0)
 
 destroying local contrast and surface detail.
 
-Earlier DCK18L versions used a global compression stage.
-
-Current versions instead use a distance-dependent Soft Compression model.
+Current DCK18L versions use a distance-dependent Soft Compression model.
 
 The correction applied to each channel is gradually reduced as the channel approaches its valid range limit.
 
@@ -145,7 +146,7 @@ Typical values:
     but weaker color separation
 ```
 
-SC is therefore intended primarily as a safety mechanism.
+SC is primarily intended as a safety mechanism.
 
 Excessively large values may reduce the very color differences that DCK18L attempts to recover.
 
@@ -153,7 +154,9 @@ Excessively large values may reduce the very color differences that DCK18L attem
 
 ## Luminance Preservation (LP)
 
-Increasing color separation often increases overall luminance.
+Practical testing revealed that Soft Compression alone is often insufficient to preserve local image detail in strongly saturated regions.
+
+Increasing color separation frequently increases overall luminance.
 
 Without compensation, corrected images can appear unnaturally bright and oversaturated.
 
@@ -180,19 +183,107 @@ RGBfinal =
     (deltaY, deltaY, deltaY)
 ```
 
-Luminance Preservation greatly improves image stability and reduces brightness artifacts.
+Although originally introduced as a luminance stabilization stage, practical testing showed that LP also helps preserve local detail in clipping-prone regions.
 
-Although disabling LP may improve some color-vision test scores, LP generally produces more natural-looking results for photographs, videos, desktop environments, and everyday use.
+In many real-world situations LP has proven to be at least as important as Soft Compression for maintaining natural-looking results.
+
+Typical values:
+
+```text
+0.0
+    disabled
+
+1.0
+    recommended
+
+>1.0
+    stronger detail preservation
+    but increased color shifts
+```
 
 ---
 
-## DCK18L Is a Framework
+## DCK19L – Adaptive Luminance Preservation (ALP)
 
-DCK18L itself is **not** a color vision deficiency simulation model.
+DCK19L is an experimental extension of DCK18L.
+
+It retains the DCK18L correction stage and Soft Compression stage but replaces fixed Luminance Preservation with an Adaptive Luminance Preservation (ALP) model.
+
+The motivation is simple:
+
+```text
+small information loss
+→ standard LP
+
+large information loss
+→ stronger LP
+```
+
+Instead of using a fixed LP strength everywhere, DCK19L estimates the visibility of lost color information:
+
+```text
+visibility =
+sqrt(
+    errorRG² +
+    errorRB² +
+    errorGB²)
+```
+
+The value is normalized by:
+
+```text
+sqrt(3)
+```
+
+and used to increase LP strength adaptively:
+
+```text
+adaptiveLP =
+LP *
+(1 + visibility)
+```
+
+The goal is not to create stronger color separation but to preserve local image detail in regions where severe corrections would otherwise collapse into clipped colors.
+
+Practical testing has shown:
+
+```text
+DCK18L
+→ higher color fidelity
+
+DCK19L
+→ stronger detail preservation
+```
+
+Especially in highly saturated red regions, DCK19L may preserve surface structure that DCK18L partially loses.
+
+However, DCK19L may also introduce larger color shifts than DCK18L.
+
+For example:
+
+```text
+red
+→ pink
+
+pink
+→ magenta/violet
+```
+
+at high correction strengths.
+
+For this reason DCK19L should currently be regarded as experimental.
+
+DCK18L remains the recommended default algorithm.
+
+---
+
+## DCK Is a Framework
+
+DCK itself is not a color vision deficiency simulation model.
 
 Instead, it operates on the output of a simulation model.
 
-The workflow is:
+DCK18L workflow:
 
 ```text
 Original Image
@@ -201,7 +292,7 @@ CVD Simulation
 ↓
 Information Loss Estimation
 ↓
-DCK18 Correction
+DCK Correction
 ↓
 Soft Compression
 ↓
@@ -210,11 +301,29 @@ Luminance Preservation
 Final Image
 ```
 
-Therefore, DCK18L can only be as accurate as the simulation model used to generate the information loss.
+DCK19L workflow:
 
-The correction algorithm and the simulation model are independent components.
+```text
+Original Image
+↓
+CVD Simulation
+↓
+Information Loss Estimation
+↓
+DCK Correction
+↓
+Soft Compression
+↓
+Adaptive Luminance Preservation
+↓
+Final Image
+```
 
-Future simulation models can therefore be used by DCK18L without modifying the correction algorithm itself.
+Therefore, DCK can only be as accurate as the simulation model used to generate the information loss.
+
+The correction algorithm and simulation model are independent components.
+
+Future simulation models can therefore be used without modifying the correction algorithm itself.
 
 ---
 
@@ -224,7 +333,7 @@ Future simulation models can therefore be used by DCK18L without modifying the c
 
 Machado provides physiologically motivated severity levels and generally produces stronger color shifts.
 
-In practice this often results in stronger DCK18L corrections and increased color separation.
+In practice this often results in stronger DCK corrections and increased color separation.
 
 Some users may prefer this behavior in accessibility-focused workflows or situations where maximum distinguishability is desired.
 
@@ -240,7 +349,7 @@ Brettel remains one of the most influential and experimentally validated color v
 
 For tritan deficiencies it is generally considered more accurate than simplified approaches and is therefore preferred.
 
-Current DCK18L tritan implementations use Brettel-based simulation by default.
+Current DCK tritan implementations use Brettel-based simulation by default.
 
 ---
 
@@ -270,7 +379,7 @@ In many practical situations, severity calibration has a larger impact on the fi
 
 ### Dependence on Simulation Accuracy
 
-DCK18L does not claim to reproduce the exact perception of a specific observer.
+DCK does not claim to reproduce the exact perception of a specific observer.
 
 The algorithm assumes that the selected simulation model and severity level provide a reasonable approximation of the user's color vision deficiency.
 
@@ -286,35 +395,37 @@ Simulation Accuracy
 Severity Accuracy
 ```
 
-DCK18L should therefore be viewed as a correction framework built on top of existing CVD simulation models rather than a standalone model of color perception.
+DCK should therefore be viewed as a correction framework built on top of existing CVD simulation models rather than a standalone model of color perception.
 
 ### Potential Severity Dependence
 
-DCK18L differs from many traditional daltonization approaches in an important way.
+DCK differs from many traditional daltonization approaches in an important way.
 
-Rather than remapping colors into alternative perceptual channels, DCK18L attempts to enhance color-difference information that is predicted to be reduced by a color vision deficiency simulation.
+Rather than remapping colors into alternative perceptual channels, DCK attempts to enhance color-difference information that is predicted to be reduced by a color vision deficiency simulation.
 
 The method therefore operates on the assumption that at least some of the original color information remains available to the observer.
 
-For mild and moderate forms of color vision deficiency, this assumption may be valid. In such cases, color differences may be weakened rather than completely lost, allowing DCK18L to increase the visibility of existing color contrast without substantially altering the overall appearance of the image.
+For mild and moderate forms of color vision deficiency, this assumption may be valid.
 
 However, the behavior at higher severity levels remains unclear.
 
-If a large portion of the original color information collapses into similar perceptual categories, the amount of recoverable information may become increasingly limited. In such situations, approaches that intentionally remap colors into alternative perceptual channels may prove more effective than approaches based primarily on contrast restoration.
+If a large portion of the original color information collapses into similar perceptual categories, the amount of recoverable information may become increasingly limited.
 
-A useful way to view DCK18L is therefore not as a color replacement algorithm, but as a color contrast reconstruction algorithm.
+In such situations, approaches that intentionally remap colors into alternative perceptual channels may prove more effective than approaches based primarily on contrast restoration.
+
+A useful way to view DCK is therefore not as a color replacement algorithm, but as a color contrast reconstruction algorithm.
 
 Its effectiveness may depend on how much residual color discrimination remains available to the observer.
 
-This hypothesis is currently based on practical observations and simulation experiments. It has not yet been validated through controlled testing with users across a broad range of protan, deutan, and tritan severity levels.
-
-Additional user studies will be required to determine how well DCK18L scales from mild deficiencies to severe forms of color vision loss.
+This hypothesis is currently based on practical observations and simulation experiments and has not yet been validated through controlled user studies.
 
 ---
 
 ## Status
 
-DCK18L is currently an experimental method.
+DCK18L is currently the recommended implementation.
+
+DCK19L is currently experimental.
 
 The implementation is released for public testing and evaluation.
 
@@ -326,6 +437,9 @@ Particular interest exists in testing:
 * severity calibration methods
 * protan, deutan, and tritan variants
 * DCK coefficients
+* Soft Compression settings
+* Luminance Preservation settings
+* Adaptive Luminance Preservation behavior
 * real-world usability in desktop environments, gaming, and mobile applications
 
 The long-term goal is to explore whether simulation-error-based correction can provide a useful alternative to traditional daltonization approaches.
