@@ -319,19 +319,19 @@ void PS_DCK19L(float4 vpos : SV_Position, float2 texcoord : TEXCOORD0, out float
         yCorrected -
         yOriginal;
 
-    // adaptive LP grows stronger
-    // for bright red clipping situations
+    // Visibility of color separation 
+    float visibility =
+        length(
+            float3(
+                error_rg,
+                error_rb,
+                error_gb));
 
-    float clipRisk =
-        max(
-            max(dc.r - 1.0, 0.0),
-            max(
-                dc.g - 1.0,
-                dc.b - 1.0));
+    // normalization 
+    visibility /= 1.7320508; 
 
-    float adaptiveLP =
-        preserve_luma *
-        (1.0 + clipRisk * 4.0);
+    // LP grows with visibility 
+    float adaptiveLP = preserve_luma * (1.0 + visibility);
 
     dc -=
         float3(
