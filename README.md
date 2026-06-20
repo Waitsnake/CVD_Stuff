@@ -9,7 +9,11 @@ DCK18L is the successor of DCK17L and extends the original method with two stabi
 * **Soft Compression (SC)**
 * **Luminance Preservation (LP)**
 
-Unlike traditional daltonization methods, DCK18L does not directly modify colors using predefined correction matrices. Instead, it analyzes the information loss predicted by a CVD simulation model and attempts to restore this lost information by enhancing color-channel differences.
+DCK19L is an experimental extension that introduces:
+
+* **Adaptive Luminance Preservation (ALP)**
+
+Unlike traditional daltonization methods, DCK does not directly modify colors using predefined correction matrices. Instead, it analyzes the information loss predicted by a CVD simulation model and attempts to restore this lost information by enhancing color-channel differences.
 
 The method is intentionally independent from any specific CVD simulation model.
 
@@ -50,7 +54,9 @@ errorGB = GBoriginal - GBsimulated
 
 These error values represent color contrast information that the simulation predicts would be lost for a viewer with the selected color vision deficiency.
 
-In other words, DCK does not attempt to invent new colors. It attempts to restore color contrast that the simulation predicts has become less distinguishable.
+DCK does not attempt to invent new colors.
+
+It attempts to restore color contrast that the simulation predicts has become less distinguishable.
 
 ---
 
@@ -74,19 +80,17 @@ dckRB = 1.0
 dckGB = 1.0
 ```
 
-The correction is intentionally simple and directly follows the color differences lost according to the selected simulation model.
+The correction directly follows the color differences lost according to the selected simulation model.
 
 The resulting color is not immediately hard-clamped.
 
-Instead, DCK18L applies Soft Compression first.
+Instead, DCK applies additional stabilization stages.
 
 ---
 
 ## Soft Compression (SC)
 
-During practical testing, a major limitation of DCK17L became apparent.
-
-Strong corrections often caused highly saturated colors to collapse into clipped regions.
+Strong corrections can cause highly saturated colors to collapse into clipped regions.
 
 For example:
 
@@ -100,7 +104,7 @@ C = (190, 0, 0)
 
 contain visible surface differences.
 
-A naive correction may push all three colors towards the same channel limit:
+A naive correction may push all three colors toward:
 
 ```text
 A = (255, 0, 0)
@@ -110,9 +114,7 @@ C = (255, 0, 0)
 
 destroying local contrast and surface detail.
 
-Current DCK18L versions use a distance-dependent Soft Compression model.
-
-The correction applied to each channel is gradually reduced as the channel approaches its valid range limit.
+Soft Compression reduces correction strength as channels approach their valid limits.
 
 Conceptually:
 
@@ -123,8 +125,6 @@ large distance to limit
 small distance to limit
 → reduced correction
 ```
-
-This allows DCK18L to preserve color separation in most of the image while reducing the risk of local saturation collapse.
 
 The amount of compression is controlled by:
 
@@ -142,23 +142,19 @@ Typical values:
     default
 
 >1.0
-    stronger protection against clipping
+    stronger clipping protection
     but weaker color separation
 ```
 
 SC is primarily intended as a safety mechanism.
 
-Excessively large values may reduce the very color differences that DCK18L attempts to recover.
-
 ---
 
 ## Luminance Preservation (LP)
 
-Practical testing revealed that Soft Compression alone is often insufficient to preserve local image detail in strongly saturated regions.
+Increasing color separation frequently increases luminance.
 
-Increasing color separation frequently increases overall luminance.
-
-Without compensation, corrected images can appear unnaturally bright and oversaturated.
+Without compensation, corrected images may appear unnaturally bright or oversaturated.
 
 Luminance is calculated as:
 
@@ -169,13 +165,15 @@ Y =
     0.0722 * B
 ```
 
-The luminance difference between the corrected and original image is:
+The luminance difference becomes:
 
 ```text
-deltaY = Ycorrected - Yoriginal
+deltaY =
+    Ycorrected -
+    Yoriginal
 ```
 
-This difference is subtracted equally from all channels:
+This difference is removed equally from all channels:
 
 ```text
 RGBfinal =
@@ -183,9 +181,7 @@ RGBfinal =
     (deltaY, deltaY, deltaY)
 ```
 
-Although originally introduced as a luminance stabilization stage, practical testing showed that LP also helps preserve local detail in clipping-prone regions.
-
-In many real-world situations LP has proven to be at least as important as Soft Compression for maintaining natural-looking results.
+Practical testing showed that LP not only stabilizes brightness but also helps preserve local detail in clipping-prone regions.
 
 Typical values:
 
@@ -198,7 +194,7 @@ Typical values:
 
 >1.0
     stronger detail preservation
-    but increased color shifts
+    but larger color shifts
 ```
 
 ---
@@ -207,19 +203,9 @@ Typical values:
 
 DCK19L is an experimental extension of DCK18L.
 
-It retains the DCK18L correction stage and Soft Compression stage but replaces fixed Luminance Preservation with an Adaptive Luminance Preservation (ALP) model.
+Instead of applying a fixed LP strength everywhere, DCK19L estimates the amount of lost color separation.
 
-The motivation is simple:
-
-```text
-small information loss
-→ standard LP
-
-large information loss
-→ stronger LP
-```
-
-Instead of using a fixed LP strength everywhere, DCK19L estimates the visibility of lost color information:
+The visibility metric is:
 
 ```text
 visibility =
@@ -229,13 +215,13 @@ sqrt(
     errorGB²)
 ```
 
-The value is normalized by:
+The value is normalized:
 
 ```text
-sqrt(3)
+visibility /= sqrt(3)
 ```
 
-and used to increase LP strength adaptively:
+The adaptive LP strength becomes:
 
 ```text
 adaptiveLP =
@@ -243,9 +229,15 @@ LP *
 (1 + visibility)
 ```
 
-The goal is not to create stronger color separation but to preserve local image detail in regions where severe corrections would otherwise collapse into clipped colors.
+Small corrections receive little additional LP.
 
-Practical testing has shown:
+Large corrections receive stronger LP.
+
+The purpose is not stronger color separation.
+
+The purpose is preserving detail in regions where strong corrections would otherwise collapse into clipping.
+
+Practical observations suggest:
 
 ```text
 DCK18L
@@ -255,23 +247,24 @@ DCK19L
 → stronger detail preservation
 ```
 
-Especially in highly saturated red regions, DCK19L may preserve surface structure that DCK18L partially loses.
+DCK19L can preserve surface structure in highly saturated regions that DCK18L may partially lose.
 
-However, DCK19L may also introduce larger color shifts than DCK18L.
+However, DCK19L can also increase color shifts.
 
-For example:
+Examples:
 
 ```text
 red
 → pink
 
 pink
-→ magenta/violet
+→ magenta
+
+pink
+→ violet
 ```
 
-at high correction strengths.
-
-For this reason DCK19L should currently be regarded as experimental.
+Therefore DCK19L currently remains experimental.
 
 DCK18L remains the recommended default algorithm.
 
@@ -283,7 +276,7 @@ DCK itself is not a color vision deficiency simulation model.
 
 Instead, it operates on the output of a simulation model.
 
-DCK18L workflow:
+DCK18L:
 
 ```text
 Original Image
@@ -301,7 +294,7 @@ Luminance Preservation
 Final Image
 ```
 
-DCK19L workflow:
+DCK19L:
 
 ```text
 Original Image
@@ -319,9 +312,9 @@ Adaptive Luminance Preservation
 Final Image
 ```
 
-Therefore, DCK can only be as accurate as the simulation model used to generate the information loss.
+Therefore DCK can only be as accurate as the simulation model used to generate the information loss.
 
-The correction algorithm and simulation model are independent components.
+The simulation model and correction algorithm are independent components.
 
 Future simulation models can therefore be used without modifying the correction algorithm itself.
 
@@ -333,9 +326,7 @@ Future simulation models can therefore be used without modifying the correction 
 
 Machado provides physiologically motivated severity levels and generally produces stronger color shifts.
 
-In practice this often results in stronger DCK corrections and increased color separation.
-
-Some users may prefer this behavior in accessibility-focused workflows or situations where maximum distinguishability is desired.
+This often results in stronger DCK corrections and increased color separation.
 
 ### Viénot et al. (1999)
 
@@ -347,9 +338,9 @@ For protan and deutan deficiencies it often preserves unaffected colors more clo
 
 Brettel remains one of the most influential and experimentally validated color vision deficiency simulation models.
 
-For tritan deficiencies it is generally considered more accurate than simplified approaches and is therefore preferred.
+For tritan deficiencies it is generally considered more accurate than simplified approaches.
 
-Current DCK tritan implementations use Brettel-based simulation by default.
+Current tritan implementations therefore use Brettel-based simulation by default.
 
 ---
 
@@ -367,11 +358,105 @@ If severity is overestimated:
 * information loss is exaggerated
 * correction becomes too strong
 
-Determining a realistic severity for an individual user is therefore essential.
+Determining a realistic severity is therefore essential.
 
 A correction can only be as good as the simulation model and severity setting on which it is based.
 
-In many practical situations, severity calibration has a larger impact on the final result than switching between different correction algorithms.
+---
+
+## Residual Color Information
+
+DCK differs from many traditional daltonization methods.
+
+Traditional daltonization often attempts to remap colors into alternative perceptual channels.
+
+DCK instead attempts to increase the visibility of color information that still remains available.
+
+This leads to an important limitation:
+
+```text
+No remaining information
+→ no information to enhance
+```
+
+DCK therefore appears to operate as a residual color contrast enhancement method.
+
+Its effectiveness may depend on how much color information remains available to the observer.
+
+---
+
+## Observations for Protan Deficiency
+
+Practical observations using Viénot and Brettel simulations suggest that the amount of remaining red information may decrease substantially as severity increases.
+
+For protan deficiencies, a possible interpretation is:
+
+```text
+severity 0.1 – 0.4
+    substantial red information remains
+
+severity 0.5 – 0.7
+    red shifts toward reddish brown
+
+severity 0.8 – 0.9
+    red shifts toward greenish brown
+
+severity 1.0
+    little or no red information remains
+```
+
+This may explain why DCK can perform well for mild deficiencies while becoming less effective at very high severities.
+
+However, these observations are currently limited to protan simulations and practical testing.
+
+They should not be generalized to deutan or tritan deficiencies.
+
+---
+
+## Deutan and Tritan Limitations
+
+The previous observations are currently specific to protan deficiencies.
+
+Deutan deficiencies affect the medium-wavelength cone system and may behave differently.
+
+Tritan deficiencies affect the short-wavelength cone system and may behave very differently.
+
+The remaining amount of recoverable color information may therefore vary considerably between:
+
+* protan
+* deutan
+* tritan
+
+The severity ranges at which DCK becomes less effective may also differ.
+
+At present there is insufficient user data to determine these limits.
+
+---
+
+## Potential Severity Dependence
+
+DCK may work best when some residual color discrimination remains available.
+
+For mild deficiencies this assumption may hold.
+
+At very high severities the amount of remaining color information may become increasingly limited.
+
+In such situations, approaches that intentionally remap colors into alternative perceptual channels may become more effective than approaches based primarily on contrast restoration.
+
+This may imply:
+
+```text
+mild deficiency
+→ DCK may be beneficial
+
+moderate deficiency
+→ effectiveness uncertain
+
+severe deficiency
+→ alternative approaches may be preferable
+```
+
+This hypothesis has not yet been validated through controlled user studies.
 
 ---
 
@@ -381,9 +466,10 @@ In many practical situations, severity calibration has a larger impact on the fi
 
 DCK does not claim to reproduce the exact perception of a specific observer.
 
-The algorithm assumes that the selected simulation model and severity level provide a reasonable approximation of the user's color vision deficiency.
+The correction depends entirely on:
 
-Any inaccuracies in the simulation model will directly affect the correction result.
+* simulation accuracy
+* severity accuracy
 
 Consequently:
 
@@ -395,29 +481,26 @@ Simulation Accuracy
 Severity Accuracy
 ```
 
-DCK should therefore be viewed as a correction framework built on top of existing CVD simulation models rather than a standalone model of color perception.
+### Limited User Data
 
-### Potential Severity Dependence
+The current observations are primarily based on:
 
-DCK differs from many traditional daltonization approaches in an important way.
+* practical use
+* simulation experiments
+* individual protan experiences
 
-Rather than remapping colors into alternative perceptual channels, DCK attempts to enhance color-difference information that is predicted to be reduced by a color vision deficiency simulation.
+Large-scale user studies do not yet exist.
 
-The method therefore operates on the assumption that at least some of the original color information remains available to the observer.
+The effectiveness of DCK for:
 
-For mild and moderate forms of color vision deficiency, this assumption may be valid.
+* moderate protan deficiency
+* severe protan deficiency
+* deutan deficiency
+* tritan deficiency
 
-However, the behavior at higher severity levels remains unclear.
+remains largely unknown.
 
-If a large portion of the original color information collapses into similar perceptual categories, the amount of recoverable information may become increasingly limited.
-
-In such situations, approaches that intentionally remap colors into alternative perceptual channels may prove more effective than approaches based primarily on contrast restoration.
-
-A useful way to view DCK is therefore not as a color replacement algorithm, but as a color contrast reconstruction algorithm.
-
-Its effectiveness may depend on how much residual color discrimination remains available to the observer.
-
-This hypothesis is currently based on practical observations and simulation experiments and has not yet been validated through controlled user studies.
+Users should therefore not assume that DCK will necessarily improve their color perception.
 
 ---
 
@@ -425,24 +508,32 @@ This hypothesis is currently based on practical observations and simulation expe
 
 DCK18L is currently the recommended implementation.
 
-DCK19L is currently experimental.
+DCK19L remains experimental.
 
-The implementation is released for public testing and evaluation.
+Feedback from users with:
 
-Feedback from users with protan, deutan, and tritan color vision deficiencies is highly appreciated.
+* protanomaly
+* protanopia
+* deuteranomaly
+* deuteranopia
+* tritanomaly
+* tritanopia
 
-Particular interest exists in testing:
+is highly appreciated.
 
-* different simulation models
-* severity calibration methods
-* protan, deutan, and tritan variants
-* DCK coefficients
-* Soft Compression settings
-* Luminance Preservation settings
-* Adaptive Luminance Preservation behavior
-* real-world usability in desktop environments, gaming, and mobile applications
+Particular interest exists in:
 
-The long-term goal is to explore whether simulation-error-based correction can provide a useful alternative to traditional daltonization approaches.
+* severity calibration
+* simulation model comparisons
+* moderate and severe deficiencies
+* deutan testing
+* tritan testing
+* gaming applications
+* desktop usage
+* video applications
+* real-world accessibility
+
+The long-term goal is to explore whether simulation-error-based correction can provide a useful alternative to traditional daltonization methods while preserving as much of the original image appearance as possible.
 
 ---
 
